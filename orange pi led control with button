@@ -1,0 +1,48 @@
+import time
+from pyA20.gpio import gpio
+from pyA20.gpio import port
+
+# Define GPIO pins
+BUTTON_PIN = port.PA12
+LED_PIN = port.PA7
+
+def setup():
+    gpio.init()
+
+    # Set up the BUTTON_PIN as input
+    gpio.setcfg(BUTTON_PIN, gpio.INPUT)
+
+    # Set up the LED_PIN as output
+    gpio.setcfg(LED_PIN, gpio.OUTPUT)
+    gpio.output(LED_PIN, gpio.LOW)
+
+def button_is_pressed():
+    return gpio.input(BUTTON_PIN) == gpio.HIGH
+
+def main():
+    setup()
+
+    led_state = False  # Initialize LED state as off
+
+    try:
+        while True:
+            if button_is_pressed():
+                # Toggle the LED state
+                led_state = not led_state
+
+                # Set the LED state
+                gpio.output(LED_PIN, gpio.HIGH if led_state else gpio.LOW)
+
+                # Wait for button release to avoid multiple toggles
+                while button_is_pressed():
+                    time.sleep(0.1)
+
+            time.sleep(0.1)
+
+    except KeyboardInterrupt:
+        # Cleanup GPIO on keyboard interrupt
+        gpio.output(LED_PIN, gpio.LOW)
+        gpio.cleanup()
+
+if __name__ == "__main__":
+    main()
